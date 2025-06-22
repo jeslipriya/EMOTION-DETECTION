@@ -9,12 +9,12 @@ import time
 
 # Improved face detection (DNN)
 face_net = cv2.dnn.readNetFromCaffe(
-    "deploy.prototxt",
-    "res10_300x300_ssd_iter_140000.caffemodel"
+    "deploy.prototxt",  # Download from: https://raw.githubusercontent.com/opencv/opencv/master/samples/dnn/face_detector/deploy.prototxt
+    "res10_300x300_ssd_iter_140000.caffemodel"  # Download from: https://raw.githubusercontent.com/opencv/opencv_3rdparty/dnn_samples_face_detector_20180205_fp16/res10_300x300_ssd_iter_140000_fp16.caffemodel
 )
 
 # FER2013 Model
-fer_model = load_model('fer2013_mini_XCEPTION.102-0.66.hdf5', compile=False)
+fer_model = load_model('fer2013_mini_XCEPTION.102-0.66.hdf5', compile=False)   # Download from: https://github.com/oarriaga/face_classification/blob/master/trained_models/emotion_models/fer2013_mini_XCEPTION.102-0.66.hdf5
 fer_emotions = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
 
 # ======================
