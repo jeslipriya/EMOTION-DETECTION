@@ -1,62 +1,57 @@
 import cv2
-import numpy as np
 from deepface import DeepFace
 
 # Initialize webcam
 cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-# Emotion mapping (DeepFace uses different labels)
-emotion_mapping = {
-    'angry': 'Angry',
-    'disgust': 'Disgust',
-    'fear': 'Fear',
-    'happy': 'Happy',
-    'sad': 'Sad',
-    'surprise': 'Surprise',
-    'neutral': 'Neutral'
+# Emotion labels (DeepFace uses these)
+emotion_labels = {
+    'angry': ' Angry',
+    'disgust': ' Disgust',
+    'fear': ' Fear',
+    'happy': ' Happy',
+    'sad': ' Sad',
+    'surprise': ' Surprise',
+    'neutral': ' Neutral'
 }
 
 while True:
+    # Read frame from webcam
     ret, frame = cap.read()
     if not ret:
         break
 
     try:
-        # Analyze frame with DeepFace (more accurate than FER2013 model)
-        results = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False, silent=True)
+        # Analyze face for emotions (DeepFace handles face detection)
+        result = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False, silent=True)
         
-        for result in results:
-            x, y, w, h = result['region']['x'], result['region']['y'], result['region']['w'], result['region']['h']
-            dominant_emotion = result['dominant_emotion']
-            emotion_score = result['emotion'][dominant_emotion]
+        # Get the first face detected
+        face_data = result[0]
+        emotion = face_data['dominant_emotion']
+        confidence = face_data['emotion'][emotion]
+        
+        # Get face location
+        x, y, w, h = face_data['region']['x'], face_data['region']['y'], face_data['region']['w'], face_data['region']['h']
+        
+        # Only show if confidence > 40%
+        if confidence > 40:
+            # Draw rectangle around face
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
             
-            # Only show if confidence > 40%
-            if emotion_score > 40:
-                # Draw rectangle
-                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                
-                # Text background for readability
-                text = f"{emotion_mapping[dominant_emotion]} {emotion_score:.1f}%"
-                (text_width, text_height), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
-                cv2.rectangle(frame, (x, y-35), (x+text_width+10, y), (0,0,0), -1)
-                
-                # Put emotion text
-                cv2.putText(frame, text, (x+5, y-10), 
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-                
-                # Visual emotion intensity indicator
-                bar_length = int(100 * (emotion_score/100))
-                cv2.rectangle(frame, (x, y+h+5), (x+bar_length, y+h+15), (0, 255, 0), -1)
+            # Display emotion text with emoji
+            text = f"{emotion_labels[emotion]} ({confidence:.1f}%)"
+            cv2.putText(frame, text, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
     
     except Exception as e:
-        print(f"Error: {e}")
-        continue
+        print(f"Error: {e}")  # Skip if no face is detected
 
-    cv2.imshow('Advanced Emotion Detection', frame)
+    # Display the webcam feed
+    cv2.imshow('Real-Time Emotion Detection', frame)
+    
+    # Press 'q' to quit
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
+# Release the webcam and close windows
 cap.release()
 cv2.destroyAllWindows()
