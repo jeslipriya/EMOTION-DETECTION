@@ -3,6 +3,7 @@ import numpy as np
 from keras.models import load_model
 import time
 from collections import deque
+import argparse
 
 # ======================
 # 1. INITIALIZE MODELS
@@ -11,7 +12,7 @@ from collections import deque
 # Improved face detection (DNN)
 face_net = cv2.dnn.readNetFromCaffe(
     "deploy.prototxt",   # Download from: https://raw.githubusercontent.com/opencv/opencv/master/samples/dnn/face_detector/deploy.prototxt
-    "res10_300x300_ssd_iter_140000.caffemodel"   # Download from: https://raw.githubusercontent.com/opencv/opencv_3rdparty/dnn_samples_face_detector_20180205_fp16/res10_300x300_ssd_iter_140000_fp16.caffemodel
+    "res10_300x300_ssd_iter_140000.caffemodel"   # Download from: https://github.com/opencv/opencv_3rdparty/dnn_samples_face_detector_20180205_fp16/res10_300x300_ssd_iter_140000_fp16.caffemodel
 )
 
 # FER2013 Model
@@ -128,39 +129,9 @@ def draw_emotion_chart(frame, emotions, confidences, top_left, size):
                    (x + i * bar_width + 5, y + chart_height - 5),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
 
-# ======================
-# 3. MAIN LOOP WITH IMPROVED UI
-# ======================
-
-# Initialize video with better settings
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-cap.set(cv2.CAP_PROP_FPS, 30)
-cap.set(cv2.CAP_PROP_AUTOFOCUS, 1)
-cap.set(cv2.CAP_PROP_BRIGHTNESS, 0.6)
-
-# For FPS calculation
-prev_time = 0
-fps_history = deque(maxlen=10)
-
-# Emotion history for smoothing
-emotion_history = deque(maxlen=5)
-
-# Main loop
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    # Calculate FPS
-    curr_time = time.time()
-    fps = 1 / (curr_time - prev_time)
-    prev_time = curr_time
-    fps_history.append(fps)
-    avg_fps = sum(fps_history) / len(fps_history)
-
-    # Mirror the frame for more natural interaction
+def process_frame(frame, emotion_history):
+    """Process a single frame for emotion detection"""
+    # Mirror the frame for more natural interaction (only for webcam)
     frame = cv2.flip(frame, 1)
 
     # Detect faces using DNN
@@ -217,20 +188,83 @@ while True:
                                (chart_position[0] + chart_size[0] + 10, 
                                 chart_position[1] + 15 + j * 15),
                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, emotion_colors.get(emotion, (255, 255, 255)), 1)
-
-    # Display FPS and instructions in a clean panel
-    cv2.rectangle(frame, (10, frame.shape[0] - 60), (250, frame.shape[0] - 10), (40, 40, 40), -1)
-    cv2.putText(frame, f"FPS: {avg_fps:.1f}", (20, frame.shape[0] - 40),
-               cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
-    cv2.putText(frame, "Press Q to quit", (20, frame.shape[0] - 20),
-               cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
-
-    # Show frame
-    cv2.imshow('Enhanced Emotion Detection', frame)
     
-    # Exit on 'q' key
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    return frame
 
-cap.release()
-cv2.destroyAllWindows()
+# ======================
+# 3. MAIN FUNCTIONALITY
+# ======================
+
+def webcam_mode():
+    """Run emotion detection on webcam feed"""
+    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap.set(cv2.CAP_PROP_FPS, 30)
+    cap.set(cv2.CAP_PROP_AUTOFOCUS, 1)
+    cap.set(cv2.CAP_PROP_BRIGHTNESS, 0.6)
+
+    prev_time = 0
+    fps_history = deque(maxlen=10)
+    emotion_history = deque(maxlen=5)
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        # Calculate FPS
+        curr_time = time.time()
+        fps = 1 / (curr_time - prev_time)
+        prev_time = curr_time
+        fps_history.append(fps)
+        avg_fps = sum(fps_history) / len(fps_history)
+
+        # Process frame
+        frame = process_frame(frame, emotion_history)
+
+        # Display FPS and instructions
+        cv2.rectangle(frame, (10, frame.shape[0] - 60), (250, frame.shape[0] - 10), (40, 40, 40), -1)
+        cv2.putText(frame, f"FPS: {avg_fps:.1f}", (20, frame.shape[0] - 40),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+        cv2.putText(frame, "Press Q to quit", (20, frame.shape[0] - 20),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+
+        cv2.imshow('Emotion Detection - Webcam Mode', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+def image_mode(image_path):
+    """Run emotion detection on a single image"""
+    frame = cv2.imread(image_path)
+    if frame is None:
+        print(f"Error: Could not load image from {image_path}")
+        return
+
+    emotion_history = deque(maxlen=1)  # No temporal smoothing for single image
+    
+    # Process the image
+    frame = process_frame(frame, emotion_history)
+    
+    # Display the result
+    cv2.imshow('Emotion Detection - Image Mode', frame)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    # Optionally save the result
+    output_path = "output_" + image_path
+    cv2.imwrite(output_path, frame)
+    print(f"Result saved to {output_path}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Emotion Detection from Webcam or Image')
+    parser.add_argument('--image', type=str, help='Path to input image file')
+    args = parser.parse_args()
+
+    if args.image:
+        image_mode(args.image)
+    else:
+        webcam_mode()
