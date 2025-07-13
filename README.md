@@ -52,7 +52,7 @@ Ensure the following pre-trained models are downloaded and placed in the same di
 ## How to Run
 
 ```bash
-python your_script_name.py
+python emotion_detection.py
 ```
 
 * The webcam feed will start.
