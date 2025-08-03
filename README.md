@@ -8,15 +8,15 @@ This project presents an advanced real-time facial emotion detection system leve
 
 ## Features
 
-* 🚀 **Real-Time Emotion Detection** via webcam
-* 🖼️ **Static Image Emotion Detection** from command line
-* 💡 **Accurate Face Detection** using OpenCV DNN (Caffe SSD)
-* 🎭 **Emotion Classification** using mini-XCEPTION (FER2013)
-* 📊 **Dynamic FPS Counter** for performance feedback
-* 🎨 **Color-Coded Emotion Visualization** for clarity
-* ⚖️ **Temporal Prediction Smoothing** using weighted history
-* 🌐 **Emotion Confidence Chart** for real-time analytics
-* 💧 **Enhanced Preprocessing** using CLAHE, Gaussian Blur, Histogram Equalization
+* **Real-Time Emotion Detection** via webcam
+* **Static Image Emotion Detection** from command line
+* **Accurate Face Detection** using OpenCV DNN (Caffe SSD)
+* **Emotion Classification** using mini-XCEPTION (FER2013)
+* **Dynamic FPS Counter** for performance feedback
+* **Color-Coded Emotion Visualization** for clarity
+* **Temporal Prediction Smoothing** using weighted history
+* **Emotion Confidence Chart** for real-time analytics
+* **Enhanced Preprocessing** using CLAHE, Gaussian Blur, Histogram Equalization
 
 ---
 
@@ -52,14 +52,14 @@ Ensure the following pre-trained models are downloaded and placed in the `models
 
 ## How to Run
 
-### 🎥 Run in Webcam Mode
+### Run in Webcam Mode
 
 ```bash
 python emotion_detection.py
 ```
 
 * Starts webcam feed.
-* Make facial expressions such as happy 😄, angry 😡, sad 😞.
+* Make facial expressions such as happy, angry, sad.
 * Press `Q` to quit.
 
 ### 🖼️ Run on Static Image

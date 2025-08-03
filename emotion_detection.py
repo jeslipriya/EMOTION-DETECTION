@@ -22,7 +22,7 @@ fer_emotions = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral
 # Emotion colors for visualization
 emotion_colors = {
     'Angry': (0, 0, 255),      # Red
-    'Disgust': (0, 102, 0),    # Dark Green
+    'Disgust': (0, 255, 0),    # Dark Green
     'Fear': (102, 0, 102),     # Purple
     'Happy': (0, 255, 255),    # Yellow
     'Sad': (255, 0, 0),        # Blue
